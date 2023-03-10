@@ -5,9 +5,8 @@
 ## Development
 
 ### requirements
-    - (python)[https://www.python.org/] 3.11 or more
-    - (pipenv)[https://pipenv.pypa.io/en/latest/]
-    - (nodejs)[https://nodejs.org/en/]
+- [python](https://www.python.org/) 3.11 or more
+- latest [pipenv](https://pipenv.pypa.io/en/latest/)
 
 ### setup
 
