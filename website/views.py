@@ -5,10 +5,11 @@ from django.http import HttpResponse
 
 from crc import Configuration, Calculator, Crc16
 from qr_code.qrcode.utils import QRCodeOptions
+import qrcode
 
 
-# def index(request):
-#     return HttpResponse('<img src="{% qr_url_from_text {} %}">'.format(qr_code("0988183927", one_time=True,money="69")))
+def index(request):
+    return HttpResponse("hello")
 
 def listToString(s):
     str1 = ""
@@ -82,3 +83,4 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
     else:
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
 
+print(qr_code(account="0882807134",one_time=True,money="50"))
