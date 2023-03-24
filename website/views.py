@@ -130,7 +130,7 @@ def on_message(mqtt_client, userdata, msg):
     if(msg.payload.decode("UTF-8") == "RESET"):
         total_money = 0.0
         product_list = []
-    if(msg.payload.decode("UTF-8") == "CONFIRM"):
+    elif (msg.payload.decode("UTF-8") == "CONFIRM"):
         total_money = 0.0
         for i in range(len(product_list)):
             update = Product.objects.get(product_serial_num=product_list[i].product_serial_num)
@@ -138,18 +138,21 @@ def on_message(mqtt_client, userdata, msg):
             print(update.product_quanity)
             update.save()
         product_list = []
-    try:
-        print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
-        total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
-        product_list.append(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")))
-    finally:
-        print(total_money)
-        for i in range(len(product_list)):
-            print(product_list[i])
-            print(product_list[i].product_serial_num)
-        
-        print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
-        pyautogui.hotkey('f5')
+    else:
+        try:
+            print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
+            total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
+            product_list.append(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")))
+            print(total_money)
+            for i in range(len(product_list)):
+                print(product_list[i])
+                print(product_list[i].product_serial_num)
+        except:
+            print("fail")
+    
+    print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
+    pyautogui.hotkey('f5')
+            
 
 client = mqtt.Client()
 client.on_connect = on_connect
