@@ -5,12 +5,14 @@ import qrcode
 import paho.mqtt.client as mqtt
 from website.models import Product
 from decouple import config
+import pyautogui
 
 from crc import Configuration, Calculator
 
 total_money = 0.0
 curr_page = ""
 pageId = -1
+product_list = []
 
 def listToString(s):
     str1 = ""
@@ -123,13 +125,30 @@ def on_connect(mqtt_client, userdata, flags, rc):
 
 def on_message(mqtt_client, userdata, msg):
     global total_money
+    global product_list
+    if(msg.payload.decode("UTF-8") == "RESET"):
+        total_money = 0.0
+        product_list = []
+    if(msg.payload.decode("UTF-8") == "CONFIRM"):
+        total_money = 0.0
+        for i in range(len(product_list)):
+            update = Product.objects.get(product_serial_num=product_list[i].product_serial_num)
+            update.product_quanity -= 1
+            print(update.product_quanity)
+            update.save()
+        product_list = []
     try:
         print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
         total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
-        print(total_money)
-        
+        product_list.append(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")))
     finally:
+        print(total_money)
+        for i in range(len(product_list)):
+            print(product_list[i])
+            print(product_list[i].product_serial_num)
+        
         print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
+        pyautogui.hotkey('f5')
 
 client = mqtt.Client()
 client.on_connect = on_connect
