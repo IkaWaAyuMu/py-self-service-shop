@@ -12,6 +12,8 @@ crc = ">=4.1.0"
 python-decouple = "*"
 django-qr-code = "*"
 paho-mqtt = "*"
+pillow = "*"
+qrcode = "*"
 
 [dev-packages]
 
