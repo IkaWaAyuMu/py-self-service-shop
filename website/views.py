@@ -7,6 +7,7 @@ from PIL import Image,ImageDraw
 import time
 # Create your views here.
 from django.http import HttpResponse
+from website.models import Product
 
 from crc import Configuration, Calculator, Crc16
 from qr_code.qrcode.utils import QRCodeOptions
@@ -86,8 +87,8 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
     
 def home_view(request):
-    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="60")))
-    img_name = 'qr' + str(time.time()) + '.png'
+    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="50")))
+    img_name = 'qrcode.png'
     qrcode_img.save(str(settings.MEDIA_ROOT) + '/' + img_name)
     # obj = Website.objects.get(id=1)
 
@@ -98,4 +99,6 @@ def home_view(request):
     # return render(request, 'home.html',context)
     return render(request, 'home.html',{'img_name' : img_name})
 
+Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num="12333")
+# print(Product.objects.get(id=1))
 # print(qr_code(account="0882807134",one_time=True,money="50"))

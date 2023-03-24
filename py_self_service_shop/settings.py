@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import paho.mqtt.client as mqtt
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'website',
+    
 ]
 
 MIDDLEWARE = [
@@ -126,3 +128,13 @@ MEDIA_ROOT = BASE_DIR / 'qr_codes'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# client = mqtt.Client()
+# client.on_connect = on_connect
+# client.on_message = on_message
+# client.username_pw_set(config("MQTT_USER"), config("MQTT_PASSWORD"))
+# client.connect(
+#     host=config("MQTT_SERVER"),
+#     port=config("MQTT_PORT"),
+#     keepalive=config("MQTT_KEEPALIVE")
+# )

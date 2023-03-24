@@ -22,3 +22,9 @@ class Website(models.Model):
         self.qr_code.save(fname,File(buffer),save=False)
         canvas.close()
         super().save(args,kwargs)
+
+class Product(models.Model):
+    product_name = models.CharField(max_length=200)
+    product_quanity = models.IntegerField()
+    product_price = models.FloatField()
+    product_serial_num = models.CharField(max_length=1000)

@@ -11,6 +11,7 @@ js2py = "*"
 crc = ">=4.1.0"
 python-decouple = "*"
 django-qr-code = "*"
+paho-mqtt = "*"
 
 [dev-packages]
 
