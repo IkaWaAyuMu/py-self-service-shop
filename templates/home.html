@@ -19,8 +19,21 @@
   <body>
     <div class="ui container">
 
-        <img src="/qr_codes/{{img_name}}" alt="qr code">
-        <h1>Total : {{money}}</h1>
+        <div style="display: flex;">
+          <img src="/qr_codes/{{img_name}}" alt="qr code">
+          <div style="display: flex; flex-direction: column;  width: 25%">
+            {% for i in product %}
+              <div style="display: flex; justify-content: space-between;">
+                <div><h3>{{i}}</h3></div>
+                
+                <div><h3>{% if i != null %}{{i.product_price}} Baht</h3></div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <h1>Total : {{money}}</h2>
+
     </div>
 
 

@@ -14,6 +14,7 @@ django-qr-code = "*"
 paho-mqtt = "*"
 pillow = "*"
 qrcode = "*"
+pyautogui = "*"
 
 [dev-packages]
 

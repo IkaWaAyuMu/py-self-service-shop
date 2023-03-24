@@ -11,11 +11,13 @@ from django.http import HttpResponse
 import paho.mqtt.client as mqtt
 from website.models import Product
 from decouple import config
+import pyautogui
 
 from crc import Configuration, Calculator, Crc16
 from qr_code.qrcode.utils import QRCodeOptions
 
 total_money = 0.0
+product_list = []
 
 def listToString(s):
     str1 = ""
@@ -101,7 +103,7 @@ def home_view(request):
     # }
     # return render(request, 'home.html',context)
     
-    return render(request, 'home.html',{'img_name' : img_name,'money' : total_money})
+    return render(request, 'home.html',{'img_name' : img_name,'money' : total_money,'product': product_list})
 
 def on_connect(mqtt_client, userdata, flags, rc):
    if rc == 0:
@@ -112,12 +114,32 @@ def on_connect(mqtt_client, userdata, flags, rc):
 
 def on_message(mqtt_client, userdata, msg):
     global total_money
+    global product_list
     # Product.objects.create(product_name="Test2",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
-    print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
-    total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
-    print(total_money)
-    print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
-    return HttpResponseRedirect('/')
+    if(msg.payload.decode("UTF-8") == "RESET"):
+        total_money = 0.0
+        product_list = []
+    if(msg.payload.decode("UTF-8") == "CONFIRM"):
+        total_money = 0.0
+        for i in range(len(product_list)):
+            update = Product.objects.get(product_serial_num=product_list[i].product_serial_num)
+            update.product_quanity -= 1
+            print(update.product_quanity)
+            update.save()
+        product_list = []
+    try:
+        print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
+        total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
+        product_list.append(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")))
+    finally:
+        print(total_money)
+        for i in range(len(product_list)):
+            print(product_list[i])
+            print(product_list[i].product_serial_num)
+        
+        print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
+        pyautogui.hotkey('f5')
+        return HttpResponseRedirect('/')
 
 client = mqtt.Client()
 client.on_connect = on_connect
