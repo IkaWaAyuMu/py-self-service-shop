@@ -28,3 +28,5 @@ class Product(models.Model):
     product_quanity = models.IntegerField()
     product_price = models.FloatField()
     product_serial_num = models.CharField(max_length=1000)
+    def __str__(self):
+        return str(self.product_name)

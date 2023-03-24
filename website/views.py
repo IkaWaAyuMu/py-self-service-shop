@@ -7,7 +7,9 @@ from PIL import Image,ImageDraw
 import time
 # Create your views here.
 from django.http import HttpResponse
+import paho.mqtt.client as mqtt
 from website.models import Product
+from decouple import config
 
 from crc import Configuration, Calculator, Crc16
 from qr_code.qrcode.utils import QRCodeOptions
@@ -99,6 +101,30 @@ def home_view(request):
     # return render(request, 'home.html',context)
     return render(request, 'home.html',{'img_name' : img_name})
 
-Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num="12333")
+def on_connect(mqtt_client, userdata, flags, rc):
+   if rc == 0:
+       print('Connected successfully')
+       mqtt_client.subscribe('scanner/0')
+   else:
+       print('Bad connection. Code:', rc)
+
+def on_message(mqtt_client, userdata, msg):
+    Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
+    print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
+
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
+client.username_pw_set(config("MQTT_USER"), config("MQTT_PASSWORD"))
+client.connect(
+    host=config("MQTT_SERVER"),
+    port=int(config("MQTT_PORT")),
+    keepalive=int(config("MQTT_KEEPALIVE"))
+)
+
+client.loop_start()
+    
+
+# Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=on_message)
 # print(Product.objects.get(id=1))
 # print(qr_code(account="0882807134",one_time=True,money="50"))
