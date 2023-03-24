@@ -1,22 +1,16 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django import forms
-from django.http import HttpResponseRedirect
 import qrcode
-from io import BytesIO
-from django.core.files import File
-from PIL import Image,ImageDraw
-import time
-# Create your views here.
-from django.http import HttpResponse
 import paho.mqtt.client as mqtt
 from website.models import Product
 from decouple import config
 
-from crc import Configuration, Calculator, Crc16
-from qr_code.qrcode.utils import QRCodeOptions
+from crc import Configuration, Calculator
 
 total_money = 0.0
+curr_page = ""
+pageId = -1
 
 def listToString(s):
     str1 = ""
@@ -91,6 +85,10 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
     
 def home_view(request, id):
+    global pageId
+    global curr_page
+    pageId = int(id)
+    curr_page = request.path_info
     qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="50")))
     img_name = 'qrcode.png'
     qrcode_img.save(str(settings.MEDIA_ROOT) + '/' + img_name)
@@ -102,7 +100,10 @@ class AddProductForm(forms.Form):
     Price = forms.FloatField(label="Price (in Baht)")
 
 def add_view(request, id):
-
+    global pageId
+    global curr_page
+    pageId = int(id)
+    curr_page = request.path_info
     if request.method == 'POST':
         form = AddProductForm(request.POST)
         if (form.is_valid()):
@@ -115,19 +116,20 @@ def add_view(request, id):
 
 def on_connect(mqtt_client, userdata, flags, rc):
    if rc == 0:
-       print('Connected successfully')
-       mqtt_client.subscribe('scanner/0')
+       print('Connected successfully, subscribing to scanner/{}'.format(pageId))
+       mqtt_client.subscribe('scanner/{}'.format(id))
    else:
        print('Bad connection. Code:', rc)
 
 def on_message(mqtt_client, userdata, msg):
     global total_money
-    # Product.objects.create(product_name="Test2",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
-    print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
-    total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
-    print(total_money)
-    print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
-    return HttpResponseRedirect('/')
+    try:
+        print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
+        total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
+        print(total_money)
+        
+    finally:
+        print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
 
 client = mqtt.Client()
 client.on_connect = on_connect
