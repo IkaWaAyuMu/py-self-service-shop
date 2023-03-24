@@ -11,7 +11,7 @@ from crc import Configuration, Calculator
 
 total_money = 0.0
 curr_page = ""
-pageId = -1
+pageId = 0
 product_list = []
 
 def listToString(s):
@@ -120,7 +120,7 @@ def add_view(request, id):
 def on_connect(mqtt_client, userdata, flags, rc):
    if rc == 0:
        print('Connected successfully, subscribing to scanner/{}'.format(pageId))
-       mqtt_client.subscribe('scanner/{}'.format(id))
+       mqtt_client.subscribe('scanner/{}'.format(pageId))
    else:
        print('Bad connection. Code:', rc)
 
