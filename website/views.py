@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
+from django import forms
 import qrcode
 from io import BytesIO
 from django.core.files import File
@@ -13,8 +14,6 @@ from decouple import config
 
 from crc import Configuration, Calculator, Crc16
 from qr_code.qrcode.utils import QRCodeOptions
-
-
 
 def listToString(s):
     str1 = ""
@@ -88,18 +87,28 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
     else:
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
     
-def home_view(request):
+def home_view(request, id):
     qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="50")))
     img_name = 'qrcode.png'
     qrcode_img.save(str(settings.MEDIA_ROOT) + '/' + img_name)
-    # obj = Website.objects.get(id=1)
-
-    # context = {
-    #     'name': name,
-    #     'obj': obj,
-    # }
-    # return render(request, 'home.html',context)
     return render(request, 'home.html',{'img_name' : img_name})
+
+class AddProductForm(forms.Form):
+    ProductName = forms.CharField(label="Product name")
+    SerialNo = forms.CharField(label="Serial Number (Code)")
+    Price = forms.FloatField(label="Price (in Baht)")
+
+def add_view(request, id):
+
+    if request.method == 'POST':
+        form = AddProductForm(request.POST)
+        if (form.is_valid()):
+            print(form.cleaned_data['ProductName'] + form.cleaned_data['SerialNo'] + str(form.cleaned_data['Price']))
+            if (Product.objects.create(product_name=form.cleaned_data['ProductName'] ,product_quanity=999 ,product_price= form.cleaned_data['Price'] ,product_serial_num=form.cleaned_data['SerialNo'])):
+                return redirect('/addProduct/{}'.format(id)) 
+    else:
+        form = AddProductForm()
+        return render(request, "addProduct.html", {'form': form, 'url': '/addProduct/{}'.format(id)})
 
 def on_connect(mqtt_client, userdata, flags, rc):
    if rc == 0:
@@ -109,7 +118,7 @@ def on_connect(mqtt_client, userdata, flags, rc):
        print('Bad connection. Code:', rc)
 
 def on_message(mqtt_client, userdata, msg):
-    Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
+    # Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
     print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
 
 client = mqtt.Client()
@@ -123,8 +132,3 @@ client.connect(
 )
 
 client.loop_start()
-    
-
-# Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=on_message)
-# print(Product.objects.get(id=1))
-# print(qr_code(account="0882807134",one_time=True,money="50"))
