@@ -93,10 +93,10 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
     
 def home_view(request, id):
-    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="50")))
+    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money=str(total_money))))
     img_name = 'qrcode.png'
     qrcode_img.save(str(settings.MEDIA_ROOT) + '/' + img_name)
-    return render(request, 'home.html',{'img_name' : img_name})
+    return render(request, 'home.html',{'img_name' : img_name,'money' : total_money, 'product' : product_list})
 
 class AddProductForm(forms.Form):
     ProductName = forms.CharField(label="Product name")
