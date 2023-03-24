@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
+from django import forms
 from django.http import HttpResponseRedirect
 import qrcode
 from io import BytesIO
@@ -91,19 +92,28 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
     else:
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
     
-def home_view(request):
-    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money=str(total_money))))
+def home_view(request, id):
+    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="50")))
     img_name = 'qrcode.png'
     qrcode_img.save(str(settings.MEDIA_ROOT) + '/' + img_name)
-    # obj = Website.objects.get(id=1)
+    return render(request, 'home.html',{'img_name' : img_name})
 
-    # context = {
-    #     'name': name,
-    #     'obj': obj,
-    # }
-    # return render(request, 'home.html',context)
-    
-    return render(request, 'home.html',{'img_name' : img_name,'money' : total_money,'product': product_list})
+class AddProductForm(forms.Form):
+    ProductName = forms.CharField(label="Product name")
+    SerialNo = forms.CharField(label="Serial Number (Code)")
+    Price = forms.FloatField(label="Price (in Baht)")
+
+def add_view(request, id):
+
+    if request.method == 'POST':
+        form = AddProductForm(request.POST)
+        if (form.is_valid()):
+            print(form.cleaned_data['ProductName'] + form.cleaned_data['SerialNo'] + str(form.cleaned_data['Price']))
+            if (Product.objects.create(product_name=form.cleaned_data['ProductName'] ,product_quanity=999 ,product_price= form.cleaned_data['Price'] ,product_serial_num=form.cleaned_data['SerialNo'])):
+                return redirect('/addProduct/{}'.format(id)) 
+    else:
+        form = AddProductForm()
+        return render(request, "addProduct.html", {'form': form, 'url': '/addProduct/{}'.format(id)})
 
 def on_connect(mqtt_client, userdata, flags, rc):
    if rc == 0:
@@ -152,8 +162,3 @@ client.connect(
 )
 
 client.loop_start()
-    
-
-# Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=on_message)
-# print(Product.objects.get(id=1))
-# print(qr_code(account="0882807134",one_time=True,money="50"))
