@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.conf import settings
+from django.http import HttpResponseRedirect
 import qrcode
 from io import BytesIO
 from django.core.files import File
@@ -14,7 +15,7 @@ from decouple import config
 from crc import Configuration, Calculator, Crc16
 from qr_code.qrcode.utils import QRCodeOptions
 
-
+total_money = 0.0
 
 def listToString(s):
     str1 = ""
@@ -89,7 +90,7 @@ def qr_code(account,one_time=True,path_qr_code="",country="TH",money="",currency
         return check_sum.upper() # upper ใช้คืนค่าสตริงเป็นตัวพิมพ์ใหญ่
     
 def home_view(request):
-    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money="50")))
+    qrcode_img = qrcode.make((qr_code(account="0882807134",one_time=True,money=str(total_money))))
     img_name = 'qrcode.png'
     qrcode_img.save(str(settings.MEDIA_ROOT) + '/' + img_name)
     # obj = Website.objects.get(id=1)
@@ -99,7 +100,8 @@ def home_view(request):
     #     'obj': obj,
     # }
     # return render(request, 'home.html',context)
-    return render(request, 'home.html',{'img_name' : img_name})
+    
+    return render(request, 'home.html',{'img_name' : img_name,'money' : total_money})
 
 def on_connect(mqtt_client, userdata, flags, rc):
    if rc == 0:
@@ -109,8 +111,13 @@ def on_connect(mqtt_client, userdata, flags, rc):
        print('Bad connection. Code:', rc)
 
 def on_message(mqtt_client, userdata, msg):
-    Product.objects.create(product_name="Test",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
+    global total_money
+    # Product.objects.create(product_name="Test2",product_quanity=10,product_price=10,product_serial_num=msg.payload.decode("UTF-8"))
+    print(Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price)
+    total_money+=Product.objects.get(product_serial_num=msg.payload.decode("UTF-8")).product_price
+    print(total_money)
     print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
+    return HttpResponseRedirect('/')
 
 client = mqtt.Client()
 client.on_connect = on_connect
